@@ -10,4 +10,7 @@ migrateup:
 migratedown:
 	migrate -path migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
 
-.PHONY: createdb dropdb migratedown migrateup
+sqlc:
+	sqlc generate
+
+.PHONY: createdb dropdb migratedown migrateup sqlc
