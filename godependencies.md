@@ -6,9 +6,14 @@
   choco install kyleconroy/sqlc/sqlc
   sudo snap install sqlc
 
- - codespace sudo (optional if using git codespace)
+- codespace sudo (optional if using git codespace)
   sudo apt update
   docker pull sqlc/sqlc
   docker run --rm -v $(pwd):/src -w /src sqlc/sqlc init
   docker run --rm -v $(pwd):/src -w /src sqlc/sqlc generate
 
+- test sqlc DB
+  go get github.com/lib/pq
+
+- testing package GO
+  go get -u github.com/stretchr/testify

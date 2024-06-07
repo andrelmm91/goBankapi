@@ -13,4 +13,7 @@ migratedown:
 sqlc:
 	sqlc generate
 
+test:
+	sudo go test -v -cover ./...
+
 .PHONY: createdb dropdb migratedown migrateup sqlc

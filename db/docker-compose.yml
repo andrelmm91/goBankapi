@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: secret
-      POSTGRES_DB: bank
+      POSTGRES_DB: simple_bank
     logging:
       options:
         max-size: 10m
@@ -16,4 +16,4 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
-      - ./sql/postgres_db_bank.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./sql/postgres_db_simple_bank.sql:/docker-entrypoint-initdb.d/create_tables.sql
