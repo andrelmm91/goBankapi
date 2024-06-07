@@ -16,4 +16,8 @@ sqlc:
 test:
 	sudo go test -v -cover ./...
 
-.PHONY: createdb dropdb migratedown migrateup sqlc
+setupDBviaDockerCompose:
+	cd ./db/ && \
+	docker-compose up -d
+
+.PHONY: createdb dropdb migratedown migrateup sqlc setupDBviaDockerCompose
