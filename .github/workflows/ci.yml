@@ -37,6 +37,12 @@ jobs:
 
     - uses: actions/checkout@v4
 
+    - name: install Goalng-migrate
+      run: |
+        curl -L https://github.com/golang-migrate/migrate/releases#:~:text=migrate.linux%2Damd64.tar.gz | tar xyz
+        sudo mv migrate.linux-amd64 /usr/bin/
+        which migrate
+
     - name: run migration
       run: make migrateup
 
