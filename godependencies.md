@@ -17,3 +17,6 @@
 
 - testing package GO
   go get -u github.com/stretchr/testify
+
+- http framework GIN
+  go get -u github.com/gin-gonic/gin
