@@ -13,13 +13,32 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
 
+    services:
+      postgres:
+        image: postgres:12-alpine
+        env:
+          POSTGRES_PASSWORD: secret
+          POSTGRES_USER: root
+          POSTGRES_DB: simple_bank
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.20'
+
+    - uses: actions/checkout@v4
+
+    - name: run migration
+      run: make migrateup
 
     - name: Test
       run: make test
