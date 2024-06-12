@@ -22,4 +22,7 @@ setupDBviaDockerCompose:
 	cd ./db/ && \
 	docker-compose up -d
 
-.PHONY: createdb dropdb migratedown migrateup sqlc setupDBviaDockerCompose
+server: 
+	go run main.go
+
+.PHONY: createdb dropdb migratedown migrateup sqlc setupDBviaDockerCompose server
