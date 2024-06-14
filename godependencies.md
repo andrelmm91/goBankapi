@@ -21,3 +21,6 @@
 
 - http framework GIN
   go get -u github.com/gin-gonic/gin
+
+- go Viper for load config
+  go get github.com/spf13/viper
