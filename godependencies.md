@@ -8,6 +8,7 @@
 
 - codespace sudo (optional if using git codespace)
   sudo apt update
+  sudo apt install snapd
   docker pull sqlc/sqlc
   docker run --rm -v $(pwd):/src -w /src sqlc/sqlc init
   docker run --rm -v $(pwd):/src -w /src sqlc/sqlc generate
