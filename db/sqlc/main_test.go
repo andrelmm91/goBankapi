@@ -14,12 +14,10 @@ var testQueries *Queries
 var testDB *sql.DB
 
 func TestMain(m *testing.M) {
-	config, err := util.LoadConfig("../..") // app.env is on the root 
+	config, err := util.LoadConfig("../..") // app.env is on the root
 	if err != nil {
 		log.Fatal("cannot load configuration:", err)
 	}
-
-	var err error
 
 	testDB, err = sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
