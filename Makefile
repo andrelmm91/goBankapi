@@ -25,4 +25,7 @@ setupDBviaDockerCompose:
 server: 
 	go run main.go
 
-.PHONY: createdb dropdb migratedown migrateup sqlc setupDBviaDockerCompose server
+mock:
+	mockgen -package mockdb -destination db/mock/store.go simplebank/db/sqlc Store
+
+.PHONY: createdb dropdb migratedown migrateup sqlc setupDBviaDockerCompose server mock
