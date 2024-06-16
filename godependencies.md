@@ -24,3 +24,9 @@
 
 - go Viper for load config
   go get github.com/spf13/viper
+
+- goMock for mocking DB testing
+  go get github.com/golang/mock/mockgen@v1.6.0
+  sudo apt install mockgen
+  running mockgen in terminal:
+  mockgen -package mockdb -destination db/mock/store.go simplebank/db/sqlc Store

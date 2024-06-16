@@ -8,11 +8,11 @@ import (
 
 // Server http requests
 type Server struct {
-	store *db.Store
+	store  db.Store
 	router *gin.Engine
 }
 
-func NewServer(store *db.Store) *Server {
+func NewServer(store db.Store) *Server {
 	server := &Server{store: store}
 	router := gin.Default()
 
@@ -31,7 +31,6 @@ func NewServer(store *db.Store) *Server {
 func (server *Server) Start(address string) error {
 	return server.router.Run(address)
 }
-
 
 // handling error
 func errorRespose(err error) gin.H {
