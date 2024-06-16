@@ -33,6 +33,6 @@ func (server *Server) Start(address string) error {
 }
 
 // handling error
-func errorRespose(err error) gin.H {
+func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
 }
