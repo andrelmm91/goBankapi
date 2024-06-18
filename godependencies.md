@@ -30,3 +30,6 @@
   sudo apt install mockgen
   running mockgen in terminal:
   mockgen -package mockdb -destination db/mock/store.go simplebank/db/sqlc Store
+
+- Custom validator for go API
+  go get github.com/go-playground/validator/v10
