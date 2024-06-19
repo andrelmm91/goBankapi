@@ -2,3 +2,4 @@ logs
 node_modules
 
 postgres-data
+postgres-data_delete
