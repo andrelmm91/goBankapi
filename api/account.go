@@ -6,6 +6,7 @@ import (
 	"simplebank/db/sqlc"
 
 	"github.com/gin-gonic/gin"
+	// "github.com/lib/pq"
 )
 
 type CreateAccountRequest struct {
@@ -59,6 +60,21 @@ func (server *Server) getAccount(ctx *gin.Context) {
 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
+
+		// IMPLEMENT this code when update the testing to use User params
+		// if err != nil {
+		// 	// convert the error into words and check them
+		// 	if pqErr, ok := err.(*pq.Error); ok {
+		// 		switch pqErr.Code.Name() {
+		// 		case "foreign_key_violation", "unique_violation":
+		// 			ctx.JSON(http.StatusForbidden, errorResponse(err))
+		// 			return
+		// 		default: 
+		// 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		// 			return
+		// 		}
+		// 	}
+		// }
 	}
 
 	ctx.JSON(http.StatusOK, account)
