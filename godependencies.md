@@ -33,3 +33,7 @@
 
 - Custom validator for go API
   go get github.com/go-playground/validator/v10
+
+- Postgres driver and toolkit
+  github.com/jackc/pgx/v5
+  github.com/jackc/pgx/v5/pgconn
