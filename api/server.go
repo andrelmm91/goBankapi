@@ -1,7 +1,10 @@
 package api
 
 import (
+	"fmt"
 	db "simplebank/db/sqlc"
+	"simplebank/token"
+	"simplebank/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -10,12 +13,23 @@ import (
 
 // Server http requests
 type Server struct {
+	config util.Config
 	store  db.Store
+	tokenMaker token.Maker
 	router *gin.Engine
 }
 
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
+func NewServer(config util.Config,store db.Store) (*Server, error) {
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token mnaker: %w", err)
+	}
+
+	server := &Server{
+		config: config,
+		store: store, 
+		tokenMaker: tokenMaker,
+	}
 	router := gin.Default()
 
 	// Custom validator for currency
@@ -35,7 +49,7 @@ func NewServer(store db.Store) *Server {
 	// server
 	server.router = router
 
-	return server
+	return server, nil
 }
 
 // Start runs the http on a specific address
