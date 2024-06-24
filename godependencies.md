@@ -33,3 +33,16 @@
 
 - Custom validator for go API
   go get github.com/go-playground/validator/v10
+
+- Postgres driver and toolkit
+  github.com/jackc/pgx/v5
+  github.com/jackc/pgx/v5/pgconn
+
+- generate ID to identify the token
+  go get github.com/google/uuid
+
+- JWT for Go token
+  go get -u github.com/golang-jwt/jwt/v5
+
+- PASETO for token mngt
+  go get github.com/o1egl/paseto
