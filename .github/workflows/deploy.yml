@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: build image 1
+    name: build image 2
     runs-on: ubuntu-latest
 
     permissions:
