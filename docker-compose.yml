@@ -22,6 +22,7 @@ services:
 
   bank-backend:
     build:
+      context: .
       dockerfile: simplebank.dockerfile
     restart: always
     ports:
@@ -36,6 +37,9 @@ services:
       - postgres
     networks:
       - simplebank-network
+    entrypoint:
+      ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
+    command: ["/app/main"]
 
 networks:
   simplebank-network:
