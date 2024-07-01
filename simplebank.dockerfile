@@ -10,8 +10,7 @@ WORKDIR /app
 COPY --from=builder /app/main .
 COPY app.env .
 COPY start.sh .
-COPY wait-for.sh .
+# COPY wait-for.sh .
 
 EXPOSE 8080
-ENTRYPOINT [ "/app/start.sh" ]
 CMD [ "/app/main" ]
