@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+  postgres:
+    image: "postgres:12-alpine"
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: simple_bank
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/postgres-data:/var/lib/postgresql/data
+      - ./db/sql/postgres_db_simple_bank_v2.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    networks:
+      - simplebank-network
+
+  bank-backend:
+    build:
+      context: .
+      dockerfile: simplebank.dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      GIN_MODE: release
+      DB_SOURCE: postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable
+    depends_on:
+      - postgres
+    networks:
+      - simplebank-network
+    entrypoint:
+      ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
+    command: ["/app/main"]
+
+networks:
+  simplebank-network:
+    driver: bridge

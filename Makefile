@@ -27,7 +27,6 @@ test:
 	sudo go test -v -cover ./...
 
 setupDBviaDockerCompose:
-	cd ./db/ && \
 	docker-compose up -d
 
 server: 
