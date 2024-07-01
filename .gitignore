@@ -5,3 +5,4 @@ postgres-data
 postgres-data_delete
 postgres-data_delete2
 
+trustpolicy.json
