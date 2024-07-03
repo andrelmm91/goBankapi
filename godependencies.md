@@ -1,5 +1,6 @@
 - db migration
   github.com/golang-migrate/migrate/v4
+  migrate create -ext sql -dir db/migration -seq add_sessions
 
 - sqlc (manage sql crud)
   go get github.com/kyleconroy/sqlc/cmd/sqlc
@@ -46,3 +47,8 @@
 
 - PASETO for token mngt
   go get github.com/o1egl/paseto
+
+- database migration
+  update migration
+  generate sqlc
+  update mock
