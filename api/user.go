@@ -5,6 +5,7 @@ import (
 	"net/http"
 	db "simplebank/db/sqlc"
 	"simplebank/util"
+	"simplebank/worker"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -59,10 +60,10 @@ func (server *Server) createUser(ctx *gin.Context) {
 	}
 
 	user, err := server.store.CreateUser(ctx, arg)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	// 	return
-	// }
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
 	// IMPLEMENT this code when update the testing to use User params
 	if err != nil {
@@ -70,6 +71,17 @@ func (server *Server) createUser(ctx *gin.Context) {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
 			return
 		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	// // >> use db transaction to create a user and send email in a single transaction
+	// create a Redis task
+	taskPayload := &worker.PayloadSendVerifyEmail{
+		Username: user.Username,
+	}
+	err = server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}

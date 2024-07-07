@@ -7,7 +7,9 @@ import (
 	"simplebank/api"
 	db "simplebank/db/sqlc"
 	"simplebank/util"
+	"simplebank/worker"
 
+	"github.com/hibiken/asynq"
 	_ "github.com/lib/pq"
 )
 
@@ -24,7 +26,14 @@ func main() {
 
 	store := db.NewStore(conn)
 
-	server, err := api.NewServer(config, store)
+	// Connect to Redis
+	redisOpt := asynq.RedisClientOpt{
+		Addr: config.RedisAddress,
+	}
+	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
+
+	// start http Server
+	server, err := api.NewServer(config, store, taskDistributor)
 	if err != nil {
 		log.Fatal("cannot create the server:", err)
 	}
