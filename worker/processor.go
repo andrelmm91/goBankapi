@@ -8,7 +8,7 @@ import (
 )
 
 type TaskProcess interface {
-	start() error
+	Start() error
 	ProcessTaskSendVerifyEmail(ctx context.Context, task *asynq.Task) error
 
 }
@@ -31,7 +31,7 @@ func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) TaskPr
 }
 
 // similarly to http handler
-func (processor *RedisTaskProcessor) start() error {
+func (processor *RedisTaskProcessor) Start() error {
 	mux := asynq.NewServeMux()
 
 	mux.HandleFunc(TaskSendVerifyEmail, processor.ProcessTaskSendVerifyEmail)

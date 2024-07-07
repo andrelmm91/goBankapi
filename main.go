@@ -11,6 +11,7 @@ import (
 
 	"github.com/hibiken/asynq"
 	_ "github.com/lib/pq"
+	logz "github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -26,11 +27,13 @@ func main() {
 
 	store := db.NewStore(conn)
 
-	// Connect to Redis
+	// Connect to Redis and start task processor routine
 	redisOpt := asynq.RedisClientOpt{
 		Addr: config.RedisAddress,
 	}
 	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
+
+	go runTaskProcessor(redisOpt, store)
 
 	// start http Server
 	server, err := api.NewServer(config, store, taskDistributor)
@@ -43,4 +46,16 @@ func main() {
 		log.Fatal("cannot start the server:", err)
 	}
 
+}
+
+// REDIS queue
+func runTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) {
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store)
+
+	logz.Info().Msg("start task processor")
+
+	err := taskProcessor.Start()
+	if err != nil {
+		log.Fatal("cannot start the task processor:", err)
+	}
 }
