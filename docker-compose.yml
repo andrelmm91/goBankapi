@@ -20,6 +20,18 @@ services:
     networks:
       - simplebank-network
 
+  redis:
+    image: "redis:7.4-rc2-alpine"
+    restart: always
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      - "6379:6379"
+    networks:
+      - simplebank-network
+
   bank-backend:
     build:
       context: .
