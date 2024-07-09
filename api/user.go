@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 )
 
 type createUserRequest struct {
@@ -65,7 +66,6 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	// IMPLEMENT this code when update the testing to use User params
 	if err != nil {
 		if db.ErrorCode(err) == db.UniqueViolation {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
@@ -75,12 +75,19 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
+	// To DO implement db transaction
 	// // >> use db transaction to create a user and send email in a single transaction
 	// create a Redis task
 	taskPayload := &worker.PayloadSendVerifyEmail{
 		Username: user.Username,
 	}
-	err = server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload)
+	opts := []asynq.Option{
+		asynq.MaxRetry(10),
+		asynq.ProcessIn(10 * time.Second),
+		asynq.Queue(worker.QueueCritical), // SET THE PRIORITY QUEUE
+	}
+
+	err = server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
