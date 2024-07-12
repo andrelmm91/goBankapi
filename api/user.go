@@ -67,7 +67,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 			}
 			opts := []asynq.Option{
 				asynq.MaxRetry(10),
-				asynq.ProcessIn(10 * time.Second),
+				asynq.ProcessIn(10 * time.Second), // necesasry delay to wait for transaction to finish
 				asynq.Queue(worker.QueueCritical), // SET THE PRIORITY QUEUE
 			}
 
