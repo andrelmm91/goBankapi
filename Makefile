@@ -24,7 +24,7 @@ sqlc:
 	sqlc generate
 
 test:
-	sudo go test -v -cover ./...
+	sudo go test -v -cover -short ./...
 
 setupDBviaDockerCompose:
 	docker-compose up -d

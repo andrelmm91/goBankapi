@@ -8,6 +8,11 @@ import (
 )
 
 func TestSendEmailWithGmail(t *testing.T) {
+	// skip this test when integrating it to CI (inside the makefile, it is removing all short test and then skipping this one)
+	if testing.Short() {
+		t.Skip()
+	}
+
 	config, err := util.LoadConfig("..")
 	require.NoError(t, err)
 
