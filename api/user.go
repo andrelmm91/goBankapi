@@ -78,11 +78,6 @@ func (server *Server) createUser(ctx *gin.Context) {
 	// // >> use db transaction to create a user and send email in a single transaction
 	txResult, err := server.store.CreateUserTx(ctx, arg)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	if err != nil {
 		if db.ErrorCode(err) == db.UniqueViolation {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
 			return
