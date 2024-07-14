@@ -34,6 +34,17 @@ func LoadConfig(path string) (config Config, err error) {
 		return
 	}
 
+	// Load environment-specific configuration if it exists
+	viper.SetConfigName("app_dev")
+	if err = viper.MergeInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return
+		}
+	}
+
+	// Override with environment variables
+	viper.AutomaticEnv()
+
 	err = viper.Unmarshal(&config)
 	return
 }
