@@ -18,6 +18,8 @@ migrateup1:
 migratedown1:
 	migrate -path migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
 
+new_migration:
+	migrate create -ext sql -dir db/migration -seq $(name)
 
 sqlc:
 	cd ./db/ && \
@@ -35,4 +37,4 @@ server:
 mock:
 	mockgen -package mockdb -destination ./db/mock/store.go simplebank/db/sqlc Store
 
-.PHONY: createdb dropdb migratedown migrateup migratedown1 migrateup1 sqlc setupDBviaDockerCompose server mock
+.PHONY: createdb dropdb migratedown migrateup migratedown1 migrateup1 sqlc setupDBviaDockerCompose server mock new_migration

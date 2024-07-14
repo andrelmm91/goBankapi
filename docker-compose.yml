@@ -16,7 +16,7 @@ services:
       - "5432:5432"
     volumes:
       - ./db/postgres-data:/var/lib/postgresql/data
-      - ./db/sql/postgres_db_simple_bank_v3.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./db/sql/postgres_db_simple_bank_v4.sql:/docker-entrypoint-initdb.d/create_tables.sql
     networks:
       - simplebank-network
 
