@@ -9,6 +9,7 @@ FROM alpine:3.20
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY app.env .
+COPY app_dev.env .
 COPY start.sh .
 # COPY wait-for.sh .
 

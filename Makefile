@@ -28,8 +28,11 @@ sqlc:
 test:
 	sudo go test -v -cover -short ./...
 
-setupDBviaDockerCompose:
-	docker-compose up -d
+dcUpdate:
+	docker-compose down
+	docker image rm gobankapi-bank-backend
+	sudo rm -rf db/postgres-data
+	docker compose up
 
 server: 
 	go run main.go
@@ -37,4 +40,4 @@ server:
 mock:
 	mockgen -package mockdb -destination ./db/mock/store.go simplebank/db/sqlc Store
 
-.PHONY: createdb dropdb migratedown migrateup migratedown1 migrateup1 sqlc setupDBviaDockerCompose server mock new_migration
+.PHONY: createdb dropdb migratedown migrateup migratedown1 migrateup1 sqlc dcUpdate server mock new_migration

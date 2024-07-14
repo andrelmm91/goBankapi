@@ -42,8 +42,8 @@ func LoadConfig(path string) (config Config, err error) {
 		}
 	}
 
-	// Override with environment variables
-	viper.AutomaticEnv()
+	// // Override with environment variables
+	// viper.AutomaticEnv()
 
 	err = viper.Unmarshal(&config)
 	return
