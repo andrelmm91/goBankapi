@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	db "simplebank/db/sqlc"
+	"simplebank/util"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
@@ -51,6 +53,7 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 		return fmt.Errorf("failed to unmarshal payload: %w", asynq.SkipRetry)
 	}
 
+	// get created user
 	user, err := processor.store.GetUser(ctx, payload.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -59,7 +62,30 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 		return fmt.Errorf("failed to get user: %w", err)
 	}
 
-	// TODO: send email to user
+	// // send confirmation email to sender
+	// generate a verified email and save it to database
+	verifyEmail, err := processor.store.CreateVerifyEmail(ctx, db.CreateVerifyEmailParams{
+		Username: user.Username,
+		Email: user.Email,
+		SecretCode: util.RandomString(32),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create verify email: %w", err)
+	}
+
+	// initial config verification email
+	subject := "Welcome to SimpleBank"
+	verifyUrl := fmt.Sprintf("http://simple-bank.org?id=%d&secret_code=%s", verifyEmail.ID, verifyEmail.SecretCode)
+	to := []string{user.Email}
+	content := fmt.Sprintf(`Hello %s, <br/> Thank you for registering with us. <br/> Please <a href="%s"> Click here <a/> to verify your email address.<br/>`, user.FullName, verifyUrl)
+	
+	// trigger send email function
+	err = processor.mailer.SendEmail(subject, content, to, nil, nil, nil)
+	if err != nil {
+		return fmt.Errorf("failed to send verify email: %w", err)
+	}
+
+	// // conclude the task
 	log.Info().Str("type", task.Type()).
     Bytes("payload", task.Payload()).Str("email", user.Email).Msg("processed task")
 
