@@ -38,11 +38,11 @@ func (distributor *RedisTaskDistributor) DistributeTaskSendVerifyEmail(
 	}
 
 	log.Info().
-    Str("type", task.Type()).
-    Bytes("payload", task.Payload()).
-    Str("queue", info.Queue).
-    Int("max_retry", info.MaxRetry).
-    Msg("enqueue task")
+		Str("type", task.Type()).
+		Bytes("payload", task.Payload()).
+		Str("queue", info.Queue).
+		Int("max_retry", info.MaxRetry).
+		Msg("enqueue task")
 
 	return nil
 }
@@ -65,8 +65,8 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 	// // send confirmation email to sender
 	// generate a verified email and save it to database
 	verifyEmail, err := processor.store.CreateVerifyEmail(ctx, db.CreateVerifyEmailParams{
-		Username: user.Username,
-		Email: user.Email,
+		Username:   user.Username,
+		Email:      user.Email,
 		SecretCode: util.RandomString(32),
 	})
 	if err != nil {
@@ -75,10 +75,10 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 
 	// initial config verification email
 	subject := "Welcome to SimpleBank"
-	verifyUrl := fmt.Sprintf("http://simple-bank.org?id=%d&secret_code=%s", verifyEmail.ID, verifyEmail.SecretCode)
+	verifyUrl := fmt.Sprintf("http://localhost:8080/verify_email?email_id=%d&secret_code=%s", verifyEmail.ID, verifyEmail.SecretCode)
 	to := []string{user.Email}
 	content := fmt.Sprintf(`Hello %s, <br/> Thank you for registering with us. <br/> Please <a href="%s"> Click here <a/> to verify your email address.<br/>`, user.FullName, verifyUrl)
-	
+
 	// trigger send email function
 	err = processor.mailer.SendEmail(subject, content, to, nil, nil, nil)
 	if err != nil {
@@ -87,7 +87,7 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 
 	// // conclude the task
 	log.Info().Str("type", task.Type()).
-    Bytes("payload", task.Payload()).Str("email", user.Email).Msg("processed task")
+		Bytes("payload", task.Payload()).Str("email", user.Email).Msg("processed task")
 
 	return nil
 }
