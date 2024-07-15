@@ -17,6 +17,10 @@ type verifyEmailRequest struct {
 	SecretCode string `form:"secret_code" binding:"required"`
 }
 
+type verifyEmailResponse struct {
+	IsVerified bool
+}
+
 func (server *Server) verifyEmail(ctx *gin.Context) {
 	var req verifyEmailRequest
 
@@ -37,5 +41,9 @@ func (server *Server) verifyEmail(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, result)
+	rsp := verifyEmailResponse{
+		IsVerified: result.User.IsEmailVerified,
+	}
+
+	ctx.JSON(http.StatusOK, rsp)
 }
