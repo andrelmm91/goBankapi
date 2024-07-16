@@ -27,6 +27,7 @@ func TestVerifyEmailAPI(t *testing.T) {
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(recorder *httptest.ResponseRecorder)
 	}{
+		///// the emailId and secret code are coming from Uri, not body. Fix it
 		{
 			name: "OK",
 			body: gin.H{
@@ -154,8 +155,8 @@ func TestVerifyEmailAPI(t *testing.T) {
 			data, err := json.Marshal(tc.body)
 			require.NoError(t, err)
 
-			url := "/users"
-			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
+			url := "/verify_email"
+			request, err := http.NewRequest(http.MethodGet, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
 			server.router.ServeHTTP(recorder, request)
