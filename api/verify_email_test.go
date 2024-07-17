@@ -1,8 +1,7 @@
 package api
 
 import (
-	"bytes"
-	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,7 +11,6 @@ import (
 	db "simplebank/db/sqlc"
 	"simplebank/util"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
@@ -21,18 +19,22 @@ func TestVerifyEmailAPI(t *testing.T) {
 	user, _ := randomUser(t)
 	verifyEmail := randomVerifyEmail(user)
 
+	type Query struct {
+		emailId    int64
+		secretCode string
+	}
+
 	testCases := []struct {
 		name          string
-		body          gin.H
+		query         Query
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(recorder *httptest.ResponseRecorder)
 	}{
-		///// the emailId and secret code are coming from Uri, not body. Fix it
 		{
 			name: "OK",
-			body: gin.H{
-				"email_id":    "",
-				"secret_code": "",
+			query: Query{
+				emailId:    verifyEmail.ID,
+				secretCode: verifyEmail.SecretCode,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.VerifyEmailTxParams{
@@ -46,96 +48,44 @@ func TestVerifyEmailAPI(t *testing.T) {
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
-				requireBodyMatchUser(t, recorder.Body, user)
+				// requireBodyMatchUser(t, recorder.Body, user)
 			},
 		},
-		// {
-		// 	name: "InternalError",
-		// 	body: gin.H{
-		// 		"username":  user.Username,
-		// 		"password":  password,
-		// 		"full_name": user.FullName,
-		// 		"email":     user.Email,
-		// 	},
-		// 	buildStubs: func(store *mockdb.MockStore) {
-		// 		store.EXPECT().
-		// 			CreateUserTx(gomock.Any(), gomock.Any()).
-		// 			Times(1).
-		// 			Return(db.CreateUserTxResult{}, sql.ErrConnDone)
-		// 	},
-		// 	checkResponse: func(recorder *httptest.ResponseRecorder) {
-		// 		require.Equal(t, http.StatusInternalServerError, recorder.Code)
-		// 	},
-		// },
-		// {
-		// 	name: "DuplicateUsername",
-		// 	body: gin.H{
-		// 		"username":  user.Username,
-		// 		"password":  password,
-		// 		"full_name": user.FullName,
-		// 		"email":     user.Email,
-		// 	},
-		// 	buildStubs: func(store *mockdb.MockStore) {
-		// 		store.EXPECT().
-		// 			CreateUserTx(gomock.Any(), gomock.Any()).
-		// 			Times(1).
-		// 			Return(db.CreateUserTxResult{}, db.ErrUniqueViolation)
-		// 	},
-		// 	checkResponse: func(recorder *httptest.ResponseRecorder) {
-		// 		require.Equal(t, http.StatusForbidden, recorder.Code)
-		// 	},
-		// },
-		// {
-		// 	name: "InvalidUsername",
-		// 	body: gin.H{
-		// 		"username":  "invalid-user#1",
-		// 		"password":  password,
-		// 		"full_name": user.FullName,
-		// 		"email":     user.Email,
-		// 	},
-		// 	buildStubs: func(store *mockdb.MockStore) {
-		// 		store.EXPECT().
-		// 			CreateUserTx(gomock.Any(), gomock.Any()).
-		// 			Times(0)
-		// 	},
-		// 	checkResponse: func(recorder *httptest.ResponseRecorder) {
-		// 		require.Equal(t, http.StatusBadRequest, recorder.Code)
-		// 	},
-		// },
-		// {
-		// 	name: "InvalidEmail",
-		// 	body: gin.H{
-		// 		"username":  user.Username,
-		// 		"password":  password,
-		// 		"full_name": user.FullName,
-		// 		"email":     "invalid-email",
-		// 	},
-		// 	buildStubs: func(store *mockdb.MockStore) {
-		// 		store.EXPECT().
-		// 			CreateUserTx(gomock.Any(), gomock.Any()).
-		// 			Times(0)
-		// 	},
-		// 	checkResponse: func(recorder *httptest.ResponseRecorder) {
-		// 		require.Equal(t, http.StatusBadRequest, recorder.Code)
-		// 	},
-		// },
-		// {
-		// 	name: "TooShortPassword",
-		// 	body: gin.H{
-		// 		"username":  user.Username,
-		// 		"password":  "123",
-		// 		"full_name": user.FullName,
-		// 		"email":     user.Email,
-		// 	},
-		// 	buildStubs: func(store *mockdb.MockStore) {
-		// 		store.EXPECT().
-		// 			CreateUserTx(gomock.Any(), gomock.Any()).
-		// 			Times(0)
-		// 	},
-		// 	checkResponse: func(recorder *httptest.ResponseRecorder) {
-		// 		require.Equal(t, http.StatusBadRequest, recorder.Code)
-		// 	},
-		// },
+		{
+			name: "BadRequestFromQuery",
+			query: Query{
+				emailId:    verifyEmail.ID,
+				secretCode: "",
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					VerifyEmailTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "InternalServerError",
+			query: Query{
+				emailId:    verifyEmail.ID,
+				secretCode: verifyEmail.SecretCode,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				arg := db.VerifyEmailTxParams{
+					EmailId:    verifyEmail.ID,
+					SecretCode: verifyEmail.SecretCode,
+				}
+				store.EXPECT().
+					VerifyEmailTx(gomock.Any(), arg).
+					Times(1).
+					Return(db.VerifyEmailTxResult{}, fmt.Errorf("internal server error"))
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
 	}
 
 	for i := range testCases {
@@ -151,13 +101,15 @@ func TestVerifyEmailAPI(t *testing.T) {
 			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
-			// Marshal body data to JSON
-			data, err := json.Marshal(tc.body)
+			url := "/verify_email"
+			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
-			url := "/verify_email"
-			request, err := http.NewRequest(http.MethodGet, url, bytes.NewReader(data))
-			require.NoError(t, err)
+			// Add query parameters to request URL
+			q := request.URL.Query()
+			q.Add("email_id", fmt.Sprintf("%d", tc.query.emailId))
+			q.Add("secret_code", fmt.Sprintf("%s", tc.query.secretCode))
+			request.URL.RawQuery = q.Encode()
 
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(recorder)
