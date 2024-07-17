@@ -3,13 +3,8 @@ package api
 import (
 	"net/http"
 	db "simplebank/db/sqlc"
-	// db "simplebank/db/sqlc"
-	// "simplebank/util"
-	// "simplebank/worker"
-	// "time"
 
 	"github.com/gin-gonic/gin"
-	// "github.com/hibiken/asynq"
 )
 
 type verifyEmailRequest struct {
