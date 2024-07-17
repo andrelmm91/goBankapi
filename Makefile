@@ -18,16 +18,21 @@ migrateup1:
 migratedown1:
 	migrate -path migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down 1
 
+new_migration:
+	migrate create -ext sql -dir db/migration -seq $(name)
 
 sqlc:
 	cd ./db/ && \
 	sqlc generate
 
 test:
-	sudo go test -v -cover ./...
+	sudo go test -v -cover -short ./...
 
-setupDBviaDockerCompose:
-	docker-compose up -d
+dcUpdate:
+	docker-compose down
+	docker image rm gobankapi-bank-backend
+	sudo rm -rf db/postgres-data
+	docker compose up
 
 server: 
 	go run main.go
@@ -35,4 +40,4 @@ server:
 mock:
 	mockgen -package mockdb -destination ./db/mock/store.go simplebank/db/sqlc Store
 
-.PHONY: createdb dropdb migratedown migrateup migratedown1 migrateup1 sqlc setupDBviaDockerCompose server mock
+.PHONY: createdb dropdb migratedown migrateup migratedown1 migrateup1 sqlc dcUpdate server mock new_migration

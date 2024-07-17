@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   postgres:
     image: "postgres:12-alpine"
@@ -16,7 +14,15 @@ services:
       - "5432:5432"
     volumes:
       - ./db/postgres-data:/var/lib/postgresql/data
-      - ./db/sql/postgres_db_simple_bank_v3.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./db/sql/postgres_db_simple_bank_v4.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    networks:
+      - simplebank-network
+
+  redis:
+    image: "redis:7.4-rc2-alpine"
+    restart: always
+    ports:
+      - "6379:6379"
     networks:
       - simplebank-network
 
@@ -35,6 +41,7 @@ services:
       DB_SOURCE: postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable
     depends_on:
       - postgres
+      - redis
     networks:
       - simplebank-network
     command: ["/app/main"]

@@ -52,3 +52,12 @@
   update migration
   generate sqlc
   update mock
+
+- message broker with ASYNQ and backed up with Redis
+  go get -u github.com/hibiken/asynq
+
+- logger JSON with high contrast
+  go get -u github.com/rs/zerolog/log
+
+- library for email (send, template)
+  go get github.com/jordan-wright/email

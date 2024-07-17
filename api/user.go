@@ -5,10 +5,12 @@ import (
 	"net/http"
 	db "simplebank/db/sqlc"
 	"simplebank/util"
+	"simplebank/worker"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 )
 
 type createUserRequest struct {
@@ -51,20 +53,30 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	arg := db.CreateUserParams{
-		Username:       req.Username,
-		HashedPassword: hashedPassword,
-		FullName:       req.FullName,
-		Email:          req.Email,
+	arg := db.CreateUserTxParams{
+		CreateUserParams: db.CreateUserParams{
+			Username:       req.Username,
+			HashedPassword: hashedPassword,
+			FullName:       req.FullName,
+			Email:          req.Email,
+		},
+		// create a Redis task
+		AfterCreate: func(user db.User) error {
+			taskPayload := &worker.PayloadSendVerifyEmail{
+				Username: user.Username,
+			}
+			opts := []asynq.Option{
+				asynq.MaxRetry(10),
+				asynq.ProcessIn(10 * time.Second), // necesasry delay to wait for transaction to finish
+				asynq.Queue(worker.QueueCritical), // SET THE PRIORITY QUEUE
+			}
+
+			return server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
+		},
 	}
 
-	user, err := server.store.CreateUser(ctx, arg)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	// 	return
-	// }
-
-	// IMPLEMENT this code when update the testing to use User params
+	// // >> use db transaction to create a user and send email in a single transaction
+	txResult, err := server.store.CreateUserTx(ctx, arg)
 	if err != nil {
 		if db.ErrorCode(err) == db.UniqueViolation {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
@@ -75,7 +87,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 	}
 
 	// create a response body without the hashpassword
-	rsp := newUserResponse(user)
+	rsp := newUserResponse(txResult.User)
 	ctx.JSON(http.StatusOK, rsp)
 }
 
