@@ -11,6 +11,7 @@ import (
 	"simplebank/worker"
 
 	"github.com/hibiken/asynq"
+	_ "github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
 	logz "github.com/rs/zerolog/log"
 )
