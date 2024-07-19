@@ -2,11 +2,11 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"simplebank/util"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,30 +64,27 @@ func TestUpdateUser(t *testing.T) {
 	require.NoError(t, err)
 
 	arg := UpdateUserParams{
-		HashedPassword: sql.NullString{
+		HashedPassword: pgtype.Text{
 			String: hashedPassword,
 			Valid:  true,
 		},
-		PasswordChangedAt: sql.NullTime{
+		PasswordChangedAt: pgtype.Timestamptz{
 			Time:  time.Now(),
 			Valid: true,
 		},
-		FullName: sql.NullString{
+		FullName: pgtype.Text{
 			String: util.RandomOwner(),
 			Valid:  true,
 		},
-		Email: sql.NullString{
+		Email: pgtype.Text{
 			String: util.RandomEmail(),
 			Valid:  true,
 		},
-		IsEmailVerified: sql.NullBool{
+		IsEmailVerified: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
 		},
-		Username: sql.NullString{
-			String: user1.Username,
-			Valid:  true,
-		},
+		Username: user1.Username,
 	}
 
 	user2, err := testQueries.UpdateUser(context.Background(), arg)
