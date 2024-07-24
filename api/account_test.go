@@ -28,7 +28,7 @@ func TestGetAccountAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		accountID     int64
-		setupAuth 	func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -88,7 +88,7 @@ func TestGetAccountAPI(t *testing.T) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
 					Times(1).
-					Return(db.Account{}, sql.ErrNoRows)
+					Return(db.Account{}, db.ErrRecordNotFound)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
@@ -161,11 +161,11 @@ func TestGetAccountAPI(t *testing.T) {
 func TestCreateAccountAPI(t *testing.T) {
 	user, _ := randomUser(t)
 	account := randomAccount(user.Username)
-	
+
 	testCases := []struct {
 		name          string
 		body          gin.H
-		setupAuth 	func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(recoder *httptest.ResponseRecorder)
 	}{
@@ -173,7 +173,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			name: "OK",
 			body: gin.H{
 				"currency": account.Currency,
-				"owner": account.Owner,
+				"owner":    account.Owner,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
@@ -182,7 +182,7 @@ func TestCreateAccountAPI(t *testing.T) {
 				arg := db.CreateAccountParams{
 					Owner:    account.Owner,
 					Currency: account.Currency,
-					Balance: 0,
+					Balance:  0,
 				}
 
 				store.EXPECT().
@@ -199,7 +199,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			name: "InternalError",
 			body: gin.H{
 				"currency": account.Currency,
-				"owner": account.Owner,
+				"owner":    account.Owner,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
@@ -218,7 +218,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			name: "InvalidBody",
 			body: gin.H{
 				"currency": "invalid",
-				"owner": "invalid",
+				"owner":    "invalid",
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
@@ -279,7 +279,7 @@ func TestListAccountsAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		query         Query
-		setupAuth 	func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(recoder *httptest.ResponseRecorder)
 	}{
@@ -294,7 +294,7 @@ func TestListAccountsAPI(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.ListAccountsParams{
-					Owner: user.Username,
+					Owner:  user.Username,
 					Limit:  int32(n),
 					Offset: 0,
 				}

@@ -1,10 +1,9 @@
 package api
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
-	"simplebank/db/sqlc"
+	db "simplebank/db/sqlc"
 	"simplebank/token"
 
 	"github.com/gin-gonic/gin"
@@ -28,9 +27,9 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 
 	arg := db.CreateAccountParams{
-		Owner: authPayload.Username,
+		Owner:    authPayload.Username,
 		Currency: req.Currency,
-		Balance: 0,
+		Balance:  0,
 	}
 
 	account, err := server.store.CreateAccount(ctx, arg)
@@ -57,7 +56,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
@@ -73,7 +72,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		// 		case "foreign_key_violation", "unique_violation":
 		// 			ctx.JSON(http.StatusForbidden, errorResponse(err))
 		// 			return
-		// 		default: 
+		// 		default:
 		// 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		// 			return
 		// 		}
@@ -83,7 +82,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 
 	// get auth payload
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	
+
 	if account.Owner != authPayload.Username {
 		err := errors.New("account doesnt belong to the authenticated user")
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
@@ -94,7 +93,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 }
 
 type listAccountRequest struct {
-	PageID int32 `form:"page_id" binding:"required,min=1"`
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
 	PageSize int32 `form:"page_size" binding:"required,min=5"`
 }
 
@@ -109,8 +108,8 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 
 	arg := db.ListAccountsParams{
-		Owner: authPayload.Username,
-		Limit: req.PageSize,
+		Owner:  authPayload.Username,
+		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 

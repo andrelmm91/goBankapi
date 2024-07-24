@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"simplebank/util"
 	"testing"
 	"time"
@@ -102,7 +101,7 @@ func TestDeleteAccount(t *testing.T) {
 
 	// testing using package Testify
 	require.Error(t, err)
-	require.EqualError(t, err, sql.ErrNoRows.Error())
+	require.EqualError(t, err, ErrRecordNotFound.Error())
 	require.Empty(t, account2)
 }
 
