@@ -25,8 +25,6 @@ func createRandomUserParams(t *testing.T) CreateUserParams {
 
 // TestCreateUserTx tests the CreateUserTx function
 func TestCreateUserTx(t *testing.T) {
-	store := NewStore(testDB)
-
 	arg := CreateUserTxParams{
 		CreateUserParams: createRandomUserParams(t),
 		AfterCreate: func(user User) error {
@@ -37,7 +35,7 @@ func TestCreateUserTx(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	result, err := store.CreateUserTx(ctx, arg)
+	result, err := testStore.CreateUserTx(ctx, arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, result)
 

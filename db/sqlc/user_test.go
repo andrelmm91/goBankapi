@@ -15,13 +15,13 @@ func createRandomUser(t *testing.T) User {
 	require.NoError(t, err)
 
 	arg := CreateUserParams{
-		Username:    util.RandomOwner(),
-		HashedPassword:  hashedPassord,
-		FullName: util.RandomOwner(),
-		Email: util.RandomEmail(),
+		Username:       util.RandomOwner(),
+		HashedPassword: hashedPassord,
+		FullName:       util.RandomOwner(),
+		Email:          util.RandomEmail(),
 	}
 
-	user, err := testQueries.CreateUser(context.Background(), arg)
+	user, err := testStore.CreateUser(context.Background(), arg)
 
 	// testing using package Testify
 	require.NoError(t, err)
@@ -44,7 +44,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	user1 := createRandomUser(t)
-	user2, err := testQueries.GetUser(context.Background(), user1.Username)
+	user2, err := testStore.GetUser(context.Background(), user1.Username)
 
 	// testing using package Testify
 	require.NoError(t, err)
@@ -87,7 +87,7 @@ func TestUpdateUser(t *testing.T) {
 		Username: user1.Username,
 	}
 
-	user2, err := testQueries.UpdateUser(context.Background(), arg)
+	user2, err := testStore.UpdateUser(context.Background(), arg)
 
 	// testing using package Testify
 	require.NoError(t, err)

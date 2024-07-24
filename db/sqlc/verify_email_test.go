@@ -19,7 +19,7 @@ func createRandomVerifyEmail(t *testing.T) VerifyEmail {
 		SecretCode: util.RandomString(32),
 	}
 
-	verifyEmail, err := testQueries.CreateVerifyEmail(context.Background(), arg)
+	verifyEmail, err := testStore.CreateVerifyEmail(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, verifyEmail)
 
@@ -35,7 +35,7 @@ func createRandomVerifyEmail(t *testing.T) VerifyEmail {
 
 func TestCreateVerifyEmail(t *testing.T) {
 	createRandomVerifyEmail(t)
-}	
+}
 
 func TestUpdateVerifyEmail(t *testing.T) {
 	verifyEmail := createRandomVerifyEmail(t)
@@ -45,7 +45,7 @@ func TestUpdateVerifyEmail(t *testing.T) {
 		SecretCode: verifyEmail.SecretCode,
 	}
 
-	updatedVerifyEmail, err := testQueries.UpdateVerifyEmail(context.Background(), arg)
+	updatedVerifyEmail, err := testStore.UpdateVerifyEmail(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedVerifyEmail)
 
