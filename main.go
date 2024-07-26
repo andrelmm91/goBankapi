@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"log"
 
 	"simplebank/api"
@@ -11,6 +11,8 @@ import (
 	"simplebank/worker"
 
 	"github.com/hibiken/asynq"
+	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 	logz "github.com/rs/zerolog/log"
 )
@@ -21,12 +23,12 @@ func main() {
 		log.Fatal("cannot load configurations:", err)
 	}
 
-	conn, err := sql.Open(config.DBDriver, config.DBSource)
+	connPool, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to the DB:", err)
 	}
 
-	store := db.NewStore(conn)
+	store := db.NewStore(connPool)
 
 	// Connect to Redis and start task processor routine
 	redisOpt := asynq.RedisClientOpt{

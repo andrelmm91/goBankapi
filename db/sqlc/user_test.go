@@ -2,11 +2,11 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"simplebank/util"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,13 +15,13 @@ func createRandomUser(t *testing.T) User {
 	require.NoError(t, err)
 
 	arg := CreateUserParams{
-		Username:    util.RandomOwner(),
-		HashedPassword:  hashedPassord,
-		FullName: util.RandomOwner(),
-		Email: util.RandomEmail(),
+		Username:       util.RandomOwner(),
+		HashedPassword: hashedPassord,
+		FullName:       util.RandomOwner(),
+		Email:          util.RandomEmail(),
 	}
 
-	user, err := testQueries.CreateUser(context.Background(), arg)
+	user, err := testStore.CreateUser(context.Background(), arg)
 
 	// testing using package Testify
 	require.NoError(t, err)
@@ -44,7 +44,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	user1 := createRandomUser(t)
-	user2, err := testQueries.GetUser(context.Background(), user1.Username)
+	user2, err := testStore.GetUser(context.Background(), user1.Username)
 
 	// testing using package Testify
 	require.NoError(t, err)
@@ -64,33 +64,30 @@ func TestUpdateUser(t *testing.T) {
 	require.NoError(t, err)
 
 	arg := UpdateUserParams{
-		HashedPassword: sql.NullString{
+		HashedPassword: pgtype.Text{
 			String: hashedPassword,
 			Valid:  true,
 		},
-		PasswordChangedAt: sql.NullTime{
+		PasswordChangedAt: pgtype.Timestamptz{
 			Time:  time.Now(),
 			Valid: true,
 		},
-		FullName: sql.NullString{
+		FullName: pgtype.Text{
 			String: util.RandomOwner(),
 			Valid:  true,
 		},
-		Email: sql.NullString{
+		Email: pgtype.Text{
 			String: util.RandomEmail(),
 			Valid:  true,
 		},
-		IsEmailVerified: sql.NullBool{
+		IsEmailVerified: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
 		},
-		Username: sql.NullString{
-			String: user1.Username,
-			Valid:  true,
-		},
+		Username: user1.Username,
 	}
 
-	user2, err := testQueries.UpdateUser(context.Background(), arg)
+	user2, err := testStore.UpdateUser(context.Background(), arg)
 
 	// testing using package Testify
 	require.NoError(t, err)

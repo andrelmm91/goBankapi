@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,13 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-
 type TransferRequest struct {
-	FromAccountID    int64 `json:"from_account_id" binding:"required,min=1"`
-	ToAccountID    int64 `json:"to_account_id" binding:"required,min=1"`
-	Amount    int64 `json:"amount" binding:"required,gt=1"`
-	Currency string `json:"currency" binding:"required,currency"` // binding:currency is the custom Validator from validator.go
+	FromAccountID int64  `json:"from_account_id" binding:"required,min=1"`
+	ToAccountID   int64  `json:"to_account_id" binding:"required,min=1"`
+	Amount        int64  `json:"amount" binding:"required,gt=1"`
+	Currency      string `json:"currency" binding:"required,currency"` // binding:currency is the custom Validator from validator.go
 }
 
 func (server *Server) createTransfer(ctx *gin.Context) {
@@ -51,8 +48,8 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	// preparing to start the transaction
 	arg := db.TransferTxParams{
 		FromAccountID: req.FromAccountID,
-		ToAccountID: req.ToAccountID,
-		Amount: req.Amount,
+		ToAccountID:   req.ToAccountID,
+		Amount:        req.Amount,
 	}
 
 	result, err := server.store.TransferTx(ctx, arg)
@@ -67,7 +64,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency string) (db.Account, bool) {
 	account, err := server.store.GetAccount(ctx, accountID)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, db.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return account, false
 		}

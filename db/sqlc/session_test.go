@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"simplebank/util"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"simplebank/util"
 )
 
 func createRandomSession(t *testing.T, user User) Session {
@@ -21,7 +22,7 @@ func createRandomSession(t *testing.T, user User) Session {
 		ExpiresAt:    time.Now().Add(time.Hour * 24),
 	}
 
-	session, err := testQueries.CreateSession(context.Background(), arg)
+	session, err := testStore.CreateSession(context.Background(), arg)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, session)
@@ -47,7 +48,7 @@ func TestCreateSession(t *testing.T) {
 func TestGetSession(t *testing.T) {
 	user := createRandomUser(t)
 	session1 := createRandomSession(t, user)
-	session2, err := testQueries.GetSession(context.Background(), session1.ID)
+	session2, err := testStore.GetSession(context.Background(), session1.ID)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, session2)

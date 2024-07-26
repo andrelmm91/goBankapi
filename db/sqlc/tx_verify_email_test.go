@@ -10,15 +10,13 @@ import (
 
 // TestVerifyEmailTx tests the VerifyEmailTx function
 func TestVerifyEmailTx(t *testing.T) {
-	store := NewStore(testDB)
-
 	verifyEmail := createRandomVerifyEmail(t)
 	arg := VerifyEmailTxParams{
 		EmailId:    verifyEmail.ID,
 		SecretCode: verifyEmail.SecretCode,
 	}
 
-	result, err := store.VerifyEmailTx(context.Background(), arg)
+	result, err := testStore.VerifyEmailTx(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, result)
 

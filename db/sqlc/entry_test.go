@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomEntry(t *testing.T, account1 Account) Entry {	
+func createRandomEntry(t *testing.T, account1 Account) Entry {
 	arg := CreateEntryParams{
 		AccountID: account1.ID,
-		Amount: util.RandomMoney(),
+		Amount:    util.RandomMoney(),
 	}
 
-	entry, err := testQueries.CreateEntry(context.Background(), arg)
+	entry, err := testStore.CreateEntry(context.Background(), arg)
 
 	// testing using package Testify
 	require.NoError(t, err)
@@ -41,7 +41,7 @@ func TestGetEntry(t *testing.T) {
 	account1 := createRandomAccount(t)
 
 	entry1 := createRandomEntry(t, account1)
-	entry2, err := testQueries.GetEntry(context.Background(), entry1.ID)
+	entry2, err := testStore.GetEntry(context.Background(), entry1.ID)
 
 	// testing using package Testify
 	require.NoError(t, err)
@@ -63,11 +63,11 @@ func TestListEntries(t *testing.T) {
 
 	arg := ListEntriesParams{
 		AccountID: account1.ID,
-		Limit:  5,
-		Offset: 5,
+		Limit:     5,
+		Offset:    5,
 	}
 
-	entries, err := testQueries.ListEntries(context.Background(), arg)
+	entries, err := testStore.ListEntries(context.Background(), arg)
 
 	// testing using package Testify
 	require.NoError(t, err)
