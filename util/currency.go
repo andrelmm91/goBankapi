@@ -15,3 +15,12 @@ func IsSupportedCurrency(currency string) bool {
 	}
 	return false
 }
+
+// IsSupportedCurrency returns true if the currency is supported
+func IsSupportedRole(role string) bool {
+	switch role {
+	case BankerRole, DepositorRole:
+		return true
+	}
+	return false
+}

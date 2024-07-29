@@ -13,3 +13,11 @@ var validCurrency validator.Func = func(FieldLevel validator.FieldLevel) bool {
 	}
 	return false
 }
+
+var validRole validator.Func = func(FieldLevel validator.FieldLevel) bool {
+	if role, ok := FieldLevel.Field().Interface().(string); ok {
+		// check currency is supported
+		return util.IsSupportedRole(role)
+	}
+	return false
+}

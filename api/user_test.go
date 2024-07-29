@@ -55,7 +55,8 @@ func EqCreateUserTxParams(arg db.CreateUserTxParams, password string) gomock.Mat
 }
 
 func TestCreateUserAPI(t *testing.T) {
-	user, password := randomUser(t)
+	role := util.DepositorRole
+	user, password := randomUser(t, role)
 
 	testCases := []struct {
 		name          string
@@ -68,6 +69,7 @@ func TestCreateUserAPI(t *testing.T) {
 			body: gin.H{
 				"username":  user.Username,
 				"password":  password,
+				"role":      user.Role,
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
@@ -97,6 +99,7 @@ func TestCreateUserAPI(t *testing.T) {
 			body: gin.H{
 				"username":  user.Username,
 				"password":  password,
+				"role":      user.Role,
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
@@ -115,6 +118,7 @@ func TestCreateUserAPI(t *testing.T) {
 			body: gin.H{
 				"username":  user.Username,
 				"password":  password,
+				"role":      user.Role,
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
@@ -133,6 +137,7 @@ func TestCreateUserAPI(t *testing.T) {
 			body: gin.H{
 				"username":  "invalid-user#1",
 				"password":  password,
+				"role":      user.Role,
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
@@ -150,6 +155,7 @@ func TestCreateUserAPI(t *testing.T) {
 			body: gin.H{
 				"username":  user.Username,
 				"password":  password,
+				"role":      user.Role,
 				"full_name": user.FullName,
 				"email":     "invalid-email",
 			},
@@ -167,6 +173,7 @@ func TestCreateUserAPI(t *testing.T) {
 			body: gin.H{
 				"username":  user.Username,
 				"password":  "123",
+				"role":      user.Role,
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
@@ -209,7 +216,8 @@ func TestCreateUserAPI(t *testing.T) {
 }
 
 func TestLoginUserAPI(t *testing.T) {
-	user, password := randomUser(t)
+	role := util.DepositorRole
+	user, password := randomUser(t, role)
 
 	testCases := []struct {
 		name          string
@@ -328,7 +336,7 @@ func TestLoginUserAPI(t *testing.T) {
 	}
 }
 
-func randomUser(t *testing.T) (user db.User, password string) {
+func randomUser(t *testing.T, role string) (user db.User, password string) {
 	password = util.RandomString(6)
 	hashedPassword, err := util.HashPassword(password)
 	require.NoError(t, err)
@@ -338,6 +346,7 @@ func randomUser(t *testing.T) (user db.User, password string) {
 		HashedPassword: hashedPassword,
 		FullName:       util.RandomOwner(),
 		Email:          util.RandomEmail(),
+		Role:           role,
 	}
 	return
 }

@@ -38,6 +38,10 @@ func NewServer(config util.Config, store db.Store, taskDistributor worker.TaskDi
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrency)
 	}
+	// Custom validator for role
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("role", validRole)
+	}
 
 	// setup routes
 	server.setupRoutes()
