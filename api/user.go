@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	db "simplebank/db/sqlc"
+	"simplebank/token"
 	"simplebank/util"
 	"simplebank/worker"
 	"time"
@@ -11,11 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type createUserRequest struct {
 	Username string `json:"username" binding:"required,alphanum"`
 	Password string `json:"password" binding:"required,min=6"`
+	Role     string `json:"role" binding:"required,role"` // binding:role is the custom Validator from validator.go
 	FullName string `json:"full_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 }
@@ -58,6 +61,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 			Username:       req.Username,
 			HashedPassword: hashedPassword,
 			FullName:       req.FullName,
+			Role: req.Role,
 			Email:          req.Email,
 		},
 		// create a Redis task
@@ -129,13 +133,13 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
+	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username, user.Role, server.config.AccessTokenDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.RefreshTokenDuration)
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(user.Username, user.Role, server.config.RefreshTokenDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -164,5 +168,110 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
 		User:                  newUserResponse(user),
 	}
+	ctx.JSON(http.StatusOK, rsp)
+}
+
+type updateUserRequest struct {
+	Username string `json:"username" binding:"required,alphanum"`
+	Password string `json:"password" binding:"required,min=6"`
+	FullName string `json:"full_name" binding:"required,min=6"`
+	Email    string `json:"email" binding:"required,email"`
+}
+
+type updateUserResponse struct {
+	Username          string    `json:"username"`
+	FullName          string    `json:"full_name"`
+	Email             string    `json:"email"`
+	Role              string    `json:"role"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+}
+
+func (server *Server) updateUser(ctx *gin.Context) {
+	var req updateUserRequest
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	// get auth payload and validate RBAC
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	err := RBAC(ctx, authPayload.Role, []string{util.DepositorRole, util.BankerRole})
+	if err != nil {
+		return
+	}
+
+	if authPayload.Role != util.BankerRole && authPayload.Username != req.Username {
+		err := errors.New("invalid user name")
+		// abort the api call and return 401 to user
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	arg := db.UpdateUserParams{
+		Username: req.Username,
+		FullName: pgtype.Text{
+			String: req.FullName,
+			Valid:  true,
+		},
+		Email: pgtype.Text{
+			String: req.Email,
+			Valid:  true,
+		},
+	}
+
+	user, err := server.store.GetUser(ctx, req.Username)
+	if err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = util.CheckPassword(req.Password, user.HashedPassword)
+	if err == nil {
+		// Passwords are the same, no need to update HashedPassword or PasswordChangedAt
+		arg.HashedPassword = pgtype.Text{
+			String: "",
+			Valid:  false,
+		}
+		arg.PasswordChangedAt = pgtype.Timestamptz{
+			Time:  time.Time{},
+			Valid: false,
+		}
+	} else {
+		// Passwords are different, update HashedPassword and PasswordChangedAt
+		hashedPassword, err := util.HashPassword(req.Password)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, errorResponse(err))
+			return
+		}
+		arg.HashedPassword = pgtype.Text{
+			String: hashedPassword,
+			Valid:  true,
+		}
+		arg.PasswordChangedAt = pgtype.Timestamptz{
+			Time:  time.Now(),
+			Valid: true,
+		}
+	}
+
+	result, err := server.store.UpdateUser(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	rsp := updateUserResponse{
+		Username:          result.Username,
+		FullName:          result.FullName,
+		Email:             result.Email,
+		Role:              result.Role,
+		PasswordChangedAt: result.PasswordChangedAt,
+	}
+
 	ctx.JSON(http.StatusOK, rsp)
 }

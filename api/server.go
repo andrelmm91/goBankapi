@@ -24,7 +24,7 @@ type Server struct {
 func NewServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) (*Server, error) {
 	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create token mnaker: %w", err)
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 
 	server := &Server{
@@ -37,6 +37,10 @@ func NewServer(config util.Config, store db.Store, taskDistributor worker.TaskDi
 	// Custom validator for currency
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrency)
+	}
+	// Custom validator for role
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("role", validRole)
 	}
 
 	// setup routes
@@ -59,6 +63,7 @@ func (server *Server) setupRoutes() {
 	authRoutes.POST("/accounts", server.createAccount)
 	authRoutes.GET("/accounts/:id", server.getAccount)
 	authRoutes.GET("/accounts", server.listAccounts)
+	authRoutes.PATCH("/users/update", server.updateUser)
 
 	authRoutes.POST("/transfers", server.createTransfer)
 

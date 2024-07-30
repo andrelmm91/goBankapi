@@ -16,7 +16,8 @@ import (
 )
 
 func TestVerifyEmailAPI(t *testing.T) {
-	user, _ := randomUser(t)
+	role := util.DepositorRole
+	user, _ := randomUser(t, role)
 	verifyEmail := randomVerifyEmail(user)
 
 	type Query struct {

@@ -19,14 +19,15 @@ import (
 )
 
 func TestRenewAccessToken(t *testing.T) {
-	user, _ := randomUser(t)
+	role := util.DepositorRole
+	user, _ := randomUser(t, role)
 
 	// Create a token maker instance with a fixed secret
 	tokenMaker, err := token.NewPasetoMaker(util.RandomString(32))
 	require.NoError(t, err)
 	// tokenMaker2, err := token.NewPasetoMaker(util.RandomString(32))
 
-	mockRefreshToken, mockRefreshPayload := randomRefreshToken(t, tokenMaker, user.Username)
+	mockRefreshToken, mockRefreshPayload := randomRefreshToken(t, tokenMaker, role, user.Username)
 	// _, mockRefreshPayload2 := randomRefreshToken(t, tokenMaker2, util.RandomOwner())
 
 	mockSession := randomSession(mockRefreshToken, mockRefreshPayload.Username, mockRefreshPayload, false, 1)
@@ -120,7 +121,7 @@ func TestRenewAccessToken(t *testing.T) {
 				var responseBody map[string]interface{}
 				err := json.Unmarshal(recorder.Body.Bytes(), &responseBody)
 				require.NoError(t, err)
-		
+
 				// Check the error message
 				require.Equal(t, "blocked session", responseBody["error"])
 			},
@@ -142,7 +143,7 @@ func TestRenewAccessToken(t *testing.T) {
 				var responseBody map[string]interface{}
 				err := json.Unmarshal(recorder.Body.Bytes(), &responseBody)
 				require.NoError(t, err)
-		
+
 				// Check the error message
 				require.Equal(t, "incorrect session user", responseBody["error"])
 			},
@@ -164,7 +165,7 @@ func TestRenewAccessToken(t *testing.T) {
 				var responseBody map[string]interface{}
 				err := json.Unmarshal(recorder.Body.Bytes(), &responseBody)
 				require.NoError(t, err)
-		
+
 				// Check the error message
 				require.Equal(t, "mismatched session token", responseBody["error"])
 			},
@@ -186,7 +187,7 @@ func TestRenewAccessToken(t *testing.T) {
 				var responseBody map[string]interface{}
 				err := json.Unmarshal(recorder.Body.Bytes(), &responseBody)
 				require.NoError(t, err)
-		
+
 				// Check the error message
 				require.Equal(t, "expired session", responseBody["error"])
 			},
@@ -221,8 +222,8 @@ func TestRenewAccessToken(t *testing.T) {
 	}
 }
 
-func randomRefreshToken(t *testing.T, maker token.Maker, username string) (string, *token.Payload) {
-	mockRefreshToken, mockRefreshPayload, err := maker.CreateToken(username, time.Minute)
+func randomRefreshToken(t *testing.T, maker token.Maker, role string, username string) (string, *token.Payload) {
+	mockRefreshToken, mockRefreshPayload, err := maker.CreateToken(username, role, time.Minute)
 	require.NoError(t, err)
 	require.NotEmpty(t, mockRefreshToken)
 	require.NotEmpty(t, mockRefreshPayload)
