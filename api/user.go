@@ -215,7 +215,18 @@ func (server *Server) updateUser(ctx *gin.Context) {
 	}
 
 	err = util.CheckPassword(req.Password, user.HashedPassword)
-	if err != nil {
+	if err == nil {
+		// Passwords are the same, no need to update HashedPassword or PasswordChangedAt
+		arg.HashedPassword = pgtype.Text{
+			String: "",
+			Valid:  false,
+		}
+		arg.PasswordChangedAt = pgtype.Timestamptz{
+			Time:  time.Time{},
+			Valid: false,
+		}
+	} else {
+		// Passwords are different, update HashedPassword and PasswordChangedAt
 		hashedPassword, err := util.HashPassword(req.Password)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, errorResponse(err))
