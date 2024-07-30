@@ -197,7 +197,10 @@ func (server *Server) updateUser(ctx *gin.Context) {
 	// get auth payload and validate RBAC
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 
-	_ = RBAC(ctx, authPayload.Role, []string{util.DepositorRole, util.BankerRole})
+	err := RBAC(ctx, authPayload.Role, []string{util.DepositorRole, util.BankerRole})
+	if err != nil {
+		return
+	}
 
 	if authPayload.Role != util.BankerRole && authPayload.Username != req.Username {
 		err := errors.New("invalid user name")

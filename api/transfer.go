@@ -6,6 +6,7 @@ import (
 	"net/http"
 	db "simplebank/db/sqlc"
 	"simplebank/token"
+	"simplebank/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,6 +43,12 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	}
 	_, valid = server.validAccount(ctx, req.ToAccountID, req.Currency)
 	if !valid {
+		return
+	}
+	
+	// validate RBAC
+	err := RBAC(ctx, authPayload.Role, []string{util.DepositorRole})
+	if err != nil {
 		return
 	}
 
