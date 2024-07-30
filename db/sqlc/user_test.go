@@ -76,6 +76,10 @@ func TestUpdateUser(t *testing.T) {
 			String: util.RandomOwner(),
 			Valid:  true,
 		},
+		Role: pgtype.Text{
+			String: util.DepositorRole,
+			Valid:  true,
+		},
 		Email: pgtype.Text{
 			String: util.RandomEmail(),
 			Valid:  true,
@@ -97,6 +101,7 @@ func TestUpdateUser(t *testing.T) {
 	require.Equal(t, hashedPassword, user2.HashedPassword)
 	require.Equal(t, arg.FullName.String, user2.FullName)
 	require.Equal(t, arg.Email.String, user2.Email)
+	require.Equal(t, arg.Role.String, user2.Role)
 	require.Equal(t, arg.IsEmailVerified.Bool, user2.IsEmailVerified)
 	require.WithinDuration(t, arg.PasswordChangedAt.Time, user2.PasswordChangedAt, time.Second)
 }
