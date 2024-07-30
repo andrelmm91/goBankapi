@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	db "simplebank/db/sqlc"
+	"simplebank/token"
 	"simplebank/util"
 	"simplebank/worker"
 	"time"
@@ -60,6 +61,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 			Username:       req.Username,
 			HashedPassword: hashedPassword,
 			FullName:       req.FullName,
+			Role: req.Role,
 			Email:          req.Email,
 		},
 		// create a Redis task
@@ -189,6 +191,18 @@ func (server *Server) updateUser(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	// get auth payload and validate RBAC
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	_ = RBAC(ctx, authPayload.Role, []string{util.DepositorRole, util.BankerRole})
+
+	if authPayload.Role != util.BankerRole && authPayload.Username != req.Username {
+		err := errors.New("invalid user name")
+		// abort the api call and return 401 to user
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}
 

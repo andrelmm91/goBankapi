@@ -7,14 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RBAC(ctx *gin.Context, payloadRole string, accessibleRoles []string) {
+func RBAC(ctx *gin.Context, payloadRole string, accessibleRoles []string) error {
 
 	if !hasPermission(payloadRole, accessibleRoles) {
 		err := fmt.Errorf("permission denied")
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
-		return
+		return err
 	}
 
+	return nil
 }
 
 func hasPermission(userRole string, accessibleRoles []string) bool {

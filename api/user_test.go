@@ -82,6 +82,7 @@ func TestCreateUserAPI(t *testing.T) {
 				arg := db.CreateUserTxParams{
 					CreateUserParams: db.CreateUserParams{
 						Username: user.Username,
+						Role: util.DepositorRole,
 						FullName: user.FullName,
 						Email:    user.Email,
 					},
