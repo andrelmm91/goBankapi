@@ -1,0 +1,253 @@
+openapi: 3.0.0
+info:
+  title: Simple Bank API
+  version: 1.0.0
+paths:
+  /accounts:
+    post:
+      summary: Create a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Account"
+      responses:
+        "200":
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+
+  /entries:
+    post:
+      summary: Create a new entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Entry"
+      responses:
+        "200":
+          description: Entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entry"
+
+  /sessions:
+    post:
+      summary: Create a new session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Session"
+      responses:
+        "200":
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /transfers:
+    post:
+      summary: Create a new transfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Transfer"
+      responses:
+        "200":
+          description: Transfer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transfer"
+
+  /users:
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /verify-email:
+    post:
+      summary: Verify an email
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/VerifyEmail"
+      responses:
+        "200":
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyEmail"
+
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        owner:
+          type: string
+          example: "user123"
+        balance:
+          type: integer
+          example: 1000
+        currency:
+          type: string
+          example: "USD"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-07-31T09:39:09Z"
+
+    Entry:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        account_id:
+          type: integer
+          example: 1
+        amount:
+          type: integer
+          example: 100
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-07-31T09:39:09Z"
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "a0eeb0e0-650c-4bce-b1c4-b2f4f49d2463"
+        username:
+          type: string
+          example: "user123"
+        refresh_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user_agent:
+          type: string
+          example: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        client_ip:
+          type: string
+          example: "192.168.1.1"
+        is_blocked:
+          type: boolean
+          example: false
+        expires_at:
+          type: string
+          format: date-time
+          example: "2024-08-01T09:39:09Z"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-07-31T09:39:09Z"
+
+    Transfer:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        from_account_id:
+          type: integer
+          example: 1
+        to_account_id:
+          type: integer
+          example: 2
+        amount:
+          type: integer
+          example: 100
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-07-31T09:39:09Z"
+
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "user123"
+        hashed_password:
+          type: string
+          example: "$2a$12$KIXZVJwlTZ.yBe6Wmv94C.ex6jO3c9/dOSG/bV3QElYbM6.4SeCWi" # example hash
+        full_name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          example: "john.doe@example.com"
+        password_changed_at:
+          type: string
+          format: date-time
+          example: "2024-07-31T09:39:09Z"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-07-31T09:39:09Z"
+        is_email_verified:
+          type: boolean
+          example: true
+        role:
+          type: string
+          example: "user"
+
+    VerifyEmail:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "user123"
+        email:
+          type: string
+          example: "john.doe@example.com"
+        secret_code:
+          type: string
+          example: "123456"
+        is_used:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-07-31T09:39:09Z"
+        expired_at:
+          type: string
+          format: date-time
+          example: "2024-08-01T09:39:09Z"

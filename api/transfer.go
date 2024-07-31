@@ -11,6 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TransferRequest defines the request body for creating a transfer
+// @Description Request body for initiating a transfer between accounts
+// @Param from_account_id body int64 true "ID of the account to transfer from"
+// @Param to_account_id body int64 true "ID of the account to transfer to"
+// @Param amount body int64 true "Amount to transfer"
+// @Param currency body string true "Currency of the accounts"
+// @Accept json
+// @Produce json
 type TransferRequest struct {
 	FromAccountID int64  `json:"from_account_id" binding:"required,min=1"`
 	ToAccountID   int64  `json:"to_account_id" binding:"required,min=1"`
@@ -18,41 +26,55 @@ type TransferRequest struct {
 	Currency      string `json:"currency" binding:"required,currency"` // binding:currency is the custom Validator from validator.go
 }
 
+// createTransfer handles the creation of a new transfer
+// @Summary Create a Transfer
+// @Description Initiate a transfer between two accounts. The request should include the account IDs, amount, and currency.
+// @Tags transfers
+// @Accept json
+// @Produce json
+// @Param request body TransferRequest true "Transfer Request"
+// @Success 200 {object} db.TransferTxResult "Transfer successfully processed"
+// @Failure 400 {object} gin.H "Bad Request - Invalid request data"
+// @Failure 401 {object} gin.H "Unauthorized - User is not authorized for this transfer"
+// @Failure 404 {object} gin.H "Not Found - Account not found"
+// @Failure 500 {object} gin.H "Internal Server Error"
+// @Router /transfers [post]
 func (server *Server) createTransfer(ctx *gin.Context) {
 	var req TransferRequest
 
-	// validating the request from the body json.
+	// Validating the request from the body JSON
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	// validating account and currency
+	// Validating account and currency
 	fromAccount, valid := server.validAccount(ctx, req.FromAccountID, req.Currency)
-	// validating curreny with the sender and receiver
+	// Validating currency with the sender and receiver
 	if !valid {
 		return
 	}
 
-	// get auth payload
+	// Get auth payload
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	if fromAccount.Owner != authPayload.Username {
-		err := errors.New("from account doesnt belong to the authenticated user")
+		err := errors.New("from account doesn't belong to the authenticated user")
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}
+
 	_, valid = server.validAccount(ctx, req.ToAccountID, req.Currency)
 	if !valid {
 		return
 	}
-	
-	// validate RBAC
+
+	// Validate RBAC
 	err := RBAC(ctx, authPayload.Role, []string{util.DepositorRole})
 	if err != nil {
 		return
 	}
 
-	// preparing to start the transaction
+	// Preparing to start the transaction
 	arg := db.TransferTxParams{
 		FromAccountID: req.FromAccountID,
 		ToAccountID:   req.ToAccountID,
@@ -68,6 +90,15 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, result)
 }
 
+// validAccount validates if an account exists and matches the provided currency
+// @Description Check if the account exists and if its currency matches the provided currency
+// @Param accountID query int64 true "Account ID to validate"
+// @Param currency query string true "Currency to validate"
+// @Success 200 {object} db.Account "Account successfully validated"
+// @Failure 400 {object} gin.H "Bad Request - Currency mismatch"
+// @Failure 404 {object} gin.H "Not Found - Account not found"
+// @Failure 500 {object} gin.H "Internal Server Error"
+// @Router /accounts/validate [get]
 func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency string) (db.Account, bool) {
 	account, err := server.store.GetAccount(ctx, accountID)
 	if err != nil {

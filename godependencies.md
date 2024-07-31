@@ -61,3 +61,9 @@
 
 - library for email (send, template)
   go get github.com/jordan-wright/email
+
+- openAI specification
+  go install github.com/swaggo/swag/cmd/swag@latest
+  go get -u github.com/swaggo/gin-swagger
+  go get -u github.com/swaggo/files
+  swag init -g server.go -d ./api -o ./docs/swagger
